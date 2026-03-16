@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Лотерея ✨</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0f0a1a;
+  --card-bg: #1a1228;
+  --accent: #e8a87c;
+  --accent2: #d4789c;
+  --gold: #f5d680;
+  --gold-dark: #c9a84c;
+  --text: #f0e6d8;
+  --text-dim: #9a8fb0;
+  --card-radius: 18px;
+}
+
+html, body {
+  min-height: 100dvh;
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+body {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(212,120,156,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 90%, rgba(232,168,124,0.10) 0%, transparent 60%),
+    var(--bg);
+}
+
+/* Stars */
+.stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.star {
+  position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%;
+  animation: twinkle var(--dur) ease-in-out infinite alternate; opacity: 0;
+}
+@keyframes twinkle { from { opacity: 0.1; } to { opacity: var(--max-o, 0.7); } }
+
+.container {
+  position: relative; z-index: 1;
+  max-width: 480px; margin: 0 auto; padding: 24px 16px 40px;
+}
+
+/* Header */
+.header { text-align: center; margin-bottom: 28px; animation: fadeDown 0.8s ease-out; }
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+.header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem; font-weight: 600; color: var(--gold);
+  letter-spacing: 0.02em; line-height: 1.2; margin-bottom: 4px;
+}
+.header .name-line {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem; font-weight: 400; font-style: italic;
+  color: var(--accent2); margin-bottom: 8px;
+}
+.header p { font-size: 0.92rem; color: var(--text-dim); line-height: 1.5; }
+
+/* Progress */
+.progress-wrap { margin-bottom: 24px; animation: fadeDown 0.8s ease-out 0.2s both; }
+.progress-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+.progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--accent2), var(--gold));
+  border-radius: 3px; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.progress-text { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.78rem; color: var(--text-dim); }
+
+/* Grid */
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+@media (min-width: 480px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* Card */
+.card-wrap {
+  aspect-ratio: 3 / 4; border-radius: var(--card-radius);
+  position: relative; cursor: pointer; overflow: hidden;
+  animation: cardIn 0.5s ease-out both; transform-origin: center;
+}
+.card-wrap:nth-child(1)  { animation-delay: 0.10s; }
+.card-wrap:nth-child(2)  { animation-delay: 0.15s; }
+.card-wrap:nth-child(3)  { animation-delay: 0.20s; }
+.card-wrap:nth-child(4)  { animation-delay: 0.25s; }
+.card-wrap:nth-child(5)  { animation-delay: 0.30s; }
+.card-wrap:nth-child(6)  { animation-delay: 0.35s; }
+.card-wrap:nth-child(7)  { animation-delay: 0.40s; }
+.card-wrap:nth-child(8)  { animation-delay: 0.45s; }
+.card-wrap:nth-child(9)  { animation-delay: 0.50s; }
+.card-wrap:nth-child(10) { animation-delay: 0.55s; }
+.card-wrap:nth-child(11) { animation-delay: 0.60s; }
+.card-wrap:nth-child(12) { animation-delay: 0.65s; }
+@keyframes cardIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+.card-content {
+  position: absolute; inset: 0; border-radius: var(--card-radius);
+  background: var(--card-bg); border: 1px solid rgba(255,255,255,0.06);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 14px 10px; text-align: center; overflow: hidden;
+}
+.card-content .emoji { font-size: 1.8rem; margin-bottom: 8px; }
+.card-content .label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.card-content .label.compliment { color: var(--accent2); }
+.card-content .label.gift { color: var(--gold); }
+.card-content .label.task { color: var(--accent); }
+.card-content .msg { font-size: 0.72rem; line-height: 1.45; color: var(--text); opacity: 0.9; }
+
+.card-wrap canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  border-radius: var(--card-radius); touch-action: none;
+}
+.card-wrap.revealed canvas { display: none; }
+.card-wrap.revealed { animation: revealPop 0.4s ease-out; }
+@keyframes revealPop { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+.card-num {
+  position: absolute; top: 6px; right: 8px; font-size: 0.62rem;
+  color: rgba(255,255,255,0.15); font-weight: 700; pointer-events: none; z-index: 5;
+}
+.card-wrap.revealed .card-num { color: rgba(255,255,255,0.25); }
+
+/* Modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,6,18,0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  z-index: 100; align-items: center; justify-content: center; padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+.modal-overlay.active { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-card {
+  background: var(--card-bg); border: 1px solid rgba(245,214,128,0.15);
+  border-radius: 24px; padding: 32px 24px; max-width: 360px; width: 100%;
+  text-align: center; animation: modalPop 0.4s cubic-bezier(0.22,1,0.36,1); position: relative;
+}
+@keyframes modalPop { from { opacity: 0; transform: scale(0.85) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-card .emoji { font-size: 2.8rem; margin-bottom: 12px; }
+.modal-card .label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+.modal-card .msg { font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 24px; white-space: pre-line; }
+
+.modal-btn-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.modal-close {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; padding: 10px 24px; color: var(--text);
+  font-family: 'Nunito', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.modal-close:hover { background: rgba(255,255,255,0.1); }
+
+.modal-skip {
+  display: none; align-items: center; gap: 6px;
+  background: rgba(232,168,124,0.1); border: 1px solid rgba(232,168,124,0.25);
+  border-radius: 12px; padding: 10px 18px; color: var(--accent);
+  font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.modal-skip:hover { background: rgba(232,168,124,0.18); }
+.modal-skip.visible { display: inline-flex; }
+.modal-skip.used { opacity: 0.4; cursor: not-allowed; color: var(--text-dim); border-color: rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); }
+
+/* Bonus */
+.bonus-section { display: none; text-align: center; margin-top: 16px; animation: bonusAppear 1s ease-out; }
+.bonus-section.active { display: block; }
+@keyframes bonusAppear { from { opacity: 0; transform: translateY(40px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.bonus-card-wrap {
+  width: 240px; aspect-ratio: 3 / 4; margin: 20px auto;
+  border-radius: var(--card-radius); position: relative; cursor: pointer; overflow: hidden;
+}
+.bonus-card-wrap .card-content {
+  background: linear-gradient(135deg, #1f1630, #2a1a3a);
+  border: 2px solid var(--gold-dark);
+  box-shadow: 0 0 40px rgba(245,214,128,0.15), inset 0 0 30px rgba(245,214,128,0.03);
+}
+.bonus-card-wrap .card-content .emoji { font-size: 2.4rem; }
+.bonus-card-wrap .card-content .msg { font-size: 0.85rem; }
+.bonus-card-wrap canvas { z-index: 2; position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.bonus-title { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--gold); margin-bottom: 4px; }
+.bonus-subtitle { font-size: 0.85rem; color: var(--text-dim); }
+
+.bonus-card-wrap.revealed canvas { display: none; }
+.bonus-card-wrap.revealed { animation: bonusReveal 0.8s ease-out; }
+@keyframes bonusReveal { 0% { transform: scale(1); } 30% { transform: scale(1.08) rotate(-2deg); } 60% { transform: scale(1.04) rotate(1deg); } 100% { transform: scale(1); } }
+
+/* Sparkles */
+.sparkle-container { position: fixed; inset: 0; pointer-events: none; z-index: 200; }
+.sparkle {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  animation: sparkleAnim 0.8s ease-out forwards;
+}
+@keyframes sparkleAnim { 0% { transform: scale(0) translate(0,0); opacity: 1; } 100% { transform: scale(1) translate(var(--tx), var(--ty)); opacity: 0; } }
+
+/* Responsive */
+@media (max-width: 360px) {
+  .grid { gap: 8px; }
+  .card-content .msg { font-size: 0.65rem; }
+  .card-content .emoji { font-size: 1.5rem; }
+  .header h1 { font-size: 1.7rem; }
+}
+@media (min-width: 420px) { .card-content .msg { font-size: 0.78rem; } }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="sparkle-container" id="sparkles"></div>
+
+<div class="container">
+  <div class="header">
+    <h1 id="headerTitle">Лотерея ✨</h1>
+    <div class="name-line" id="nameLine"></div>
+    <p id="headerSub">Стирай карточки пальцем и открывай сюрпризы</p>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text">
+      <span id="progressLabel">Открыто: 0 из 12</span>
+      <span id="progressHint">✨ стирай!</span>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="bonus-section" id="bonusSection">
+    <div class="bonus-title" id="bonusTitleText">🌟 Секретная карточка</div>
+    <div class="bonus-subtitle" id="bonusSubText">Ты заслужила — стирай!</div>
+    <div class="bonus-card-wrap" id="bonusCard">
+      <div class="card-content">
+        <div class="emoji">👑</div>
+        <div class="label" style="color: var(--gold);" id="bonusLabel">Секрет</div>
+        <div class="msg" id="bonusMsg"></div>
+      </div>
+      <canvas></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-card">
+    <div class="emoji" id="modalEmoji"></div>
+    <div class="label" id="modalLabel"></div>
+    <div class="msg" id="modalMsg"></div>
+    <div class="modal-btn-row">
+      <button class="modal-skip" id="modalSkip">🔄 Не хочу — давай другое!</button>
+      <button class="modal-close" id="modalClose">Понятно 💕</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+// ========== Parse URL params (base64 encoded) ==========
+const urlParams = new URLSearchParams(window.location.search);
+let recipientName = '', gender = 'f', tone = 'flirt', customFinal = '';
+
+try {
+  const encoded = urlParams.get('d');
+  if (encoded) {
+    const json = decodeURIComponent(escape(atob(encoded)));
+    const data = JSON.parse(json);
+    recipientName = data.n || '';
+    gender = data.g || 'f';
+    tone = data.t || 'flirt';
+    customFinal = data.f || '';
+  }
+} catch(e) {
+  // fallback to defaults
+}
+
+// ========== Setup UI text ==========
+document.getElementById('headerTitle').textContent = DATA.ui.toneLabels[tone] || 'Лотерея ✨';
+if (recipientName) {
+  document.getElementById('nameLine').textContent = recipientName + ', это для тебя';
+} else {
+  document.getElementById('nameLine').style.display = 'none';
+}
+document.getElementById('headerSub').textContent = DATA.ui.subtitles[gender]?.[tone] || 'Стирай карточки и открывай сюрпризы';
+document.getElementById('bonusTitleText').textContent = DATA.ui.bonusTitle;
+document.getElementById('bonusSubText').textContent = DATA.ui.bonusSubtitle[gender] || 'Стирай!';
+
+// ========== Get cards ==========
+const allCards = getCards(gender, tone);
+const finalText = getFinalCard(gender, tone, customFinal);
+document.getElementById('bonusMsg').textContent = finalText;
+
+// ========== State ==========
+let revealedCount = 0;
+let skipUsed = false;
+let currentModalCardIndex = -1;
+const grid = document.getElementById('grid');
+
+// Extra tasks pool for skip replacement
+const extraTasks = shuffle(DATA.tasks[gender]?.[tone] || []).filter(
+  t => !allCards.some(c => c.msg === t.text)
+);
+
+// ========== Stars ==========
+(function createStars() {
+  const cont = document.getElementById('stars');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.setProperty('--dur', (1.5 + Math.random() * 3) + 's');
+    s.style.setProperty('--max-o', (0.3 + Math.random() * 0.5).toFixed(2));
+    s.style.animationDelay = (Math.random() * 3) + 's';
+    if (Math.random() > 0.7) { s.style.width = '3px'; s.style.height = '3px'; }
+    cont.appendChild(s);
+  }
+})();
+
+// ========== Sparkles ==========
+function emitSparkles(x, y) {
+  const cont = document.getElementById('sparkles');
+  const colors = ['#f5d680', '#e8a87c', '#d4789c', '#fff'];
+  for (let i = 0; i < 12; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.style.left = x + 'px'; s.style.top = y + 'px';
+    s.style.background = colors[Math.floor(Math.random() * colors.length)];
+    const angle = (Math.PI * 2 / 12) * i + (Math.random() - 0.5);
+    const dist = 40 + Math.random() * 60;
+    s.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+    s.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+    cont.appendChild(s);
+    setTimeout(() => s.remove(), 800);
+  }
+}
+
+// ========== Scratch Engine ==========
+function setupScratch(canvas, onReveal, isBonus) {
+  const ctx = canvas.getContext('2d');
+  let isDrawing = false;
+  let revealed = false;
+  let cardW = 0, cardH = 0;
+  const brushR = isBonus ? 28 : 22;
+  const gridCols = 20, gridRows = 26;
+  const scratchGrid = Array.from({ length: gridRows }, () => new Uint8Array(gridCols));
+
+  function markGrid(cx, cy) {
+    if (cardW === 0 || cardH === 0) return;
+    const cellW = cardW / gridCols, cellH = cardH / gridRows;
+    const minCol = Math.max(0, Math.floor((cx - brushR) / cellW));
+    const maxCol = Math.min(gridCols - 1, Math.floor((cx + brushR) / cellW));
+    const minRow = Math.max(0, Math.floor((cy - brushR) / cellH));
+    const maxRow = Math.min(gridRows - 1, Math.floor((cy + brushR) / cellH));
+    for (let r = minRow; r <= maxRow; r++)
+      for (let c = minCol; c <= maxCol; c++)
+        scratchGrid[r][c] = 1;
+  }
+
+  function getScratchPercent() {
+    let s = 0; const total = gridCols * gridRows;
+    for (let r = 0; r < gridRows; r++)
+      for (let c = 0; c < gridCols; c++)
+        if (scratchGrid[r][c]) s++;
+    return s / total;
+  }
+
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (w === 0 || h === 0) { requestAnimationFrame(resize); return; }
+    const dpr = window.devicePixelRatio || 1;
+    cardW = w; cardH = h;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawCover(w, h);
+  }
+
+  function drawCover(w, h) {
+    const r = 18;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(r,0); ctx.lineTo(w-r,0); ctx.quadraticCurveTo(w,0,w,r);
+    ctx.lineTo(w,h-r); ctx.quadraticCurveTo(w,h,w-r,h);
+    ctx.lineTo(r,h); ctx.quadraticCurveTo(0,h,0,h-r);
+    ctx.lineTo(0,r); ctx.quadraticCurveTo(0,0,r,0);
+    ctx.closePath(); ctx.clip();
+
+    const g = ctx.createLinearGradient(0,0,w,h);
+    if (isBonus) { g.addColorStop(0,'#3a2860'); g.addColorStop(0.5,'#4a3070'); g.addColorStop(1,'#2a1a50'); }
+    else { g.addColorStop(0,'#2a1e40'); g.addColorStop(1,'#1e1535'); }
+    ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+
+    ctx.strokeStyle = isBonus ? 'rgba(245,214,128,0.12)' : 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let i = -h; i < w + h; i += 18) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i+h,h); ctx.stroke(); }
+
+    ctx.font = isBonus ? '42px serif' : '32px serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillText(isBonus ? '🌟' : '?', w/2, h/2);
+
+    ctx.font = '600 '+(isBonus?'11':'9')+'px Nunito, sans-serif';
+    ctx.fillStyle = isBonus ? 'rgba(245,214,128,0.35)' : 'rgba(255,255,255,0.18)';
+    ctx.fillText(isBonus ? 'СТИРАЙ ✨' : 'СТИРАЙ', w/2, h-20);
+    ctx.restore();
+  }
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+  }
+
+  function scratch(pos) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, brushR, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+    markGrid(pos.x, pos.y);
+  }
+
+  function tryReveal() {
+    if (revealed) return;
+    if (getScratchPercent() >= 0.50) {
+      revealed = true;
+      canvas.style.transition = 'opacity 0.4s ease-out';
+      canvas.style.opacity = '0';
+      setTimeout(() => onReveal(), 200);
+    }
+  }
+
+  canvas.addEventListener('mousedown', e => { isDrawing = true; scratch(getPos(e)); });
+  canvas.addEventListener('mousemove', e => { if (isDrawing) scratch(getPos(e)); });
+  canvas.addEventListener('mouseup', () => { isDrawing = false; tryReveal(); });
+  canvas.addEventListener('mouseleave', () => { isDrawing = false; });
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); isDrawing = true; scratch(getPos(e)); }, { passive: false });
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); if (isDrawing) scratch(getPos(e)); }, { passive: false });
+  canvas.addEventListener('touchend', () => { isDrawing = false; tryReveal(); });
+
+  requestAnimationFrame(() => { requestAnimationFrame(() => { resize(); }); });
+  window.addEventListener('resize', () => { if (!revealed) resize(); });
+}
+
+// ========== Build Cards ==========
+allCards.forEach((card, i) => {
+  const wrap = document.createElement('div');
+  wrap.className = 'card-wrap';
+  wrap.innerHTML = `
+    <div class="card-content">
+      <div class="emoji">${card.emoji}</div>
+      <div class="label ${card.type}">${card.label}</div>
+      <div class="msg">${card.msg}</div>
+    </div>
+    <span class="card-num">${i + 1}</span>
+    <canvas></canvas>
+  `;
+  grid.appendChild(wrap);
+  const canvas = wrap.querySelector('canvas');
+
+  wrap.addEventListener('click', () => {
+    if (wrap.classList.contains('revealed')) openModal(card, i);
+  });
+
+  setupScratch(canvas, () => {
+    wrap.classList.add('revealed');
+    revealedCount++;
+    updateProgress();
+    const rect = wrap.getBoundingClientRect();
+    emitSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
+    if (revealedCount === 12) setTimeout(showBonus, 800);
+    setTimeout(() => openModal(card, i), 300);
+  }, false);
+});
+
+// ========== Progress ==========
+function updateProgress() {
+  document.getElementById('progressFill').style.width = (revealedCount / 12 * 100) + '%';
+  document.getElementById('progressLabel').textContent = `Открыто: ${revealedCount} из 12`;
+  if (revealedCount === 12) document.getElementById('progressHint').textContent = '🌟 бонус!';
+  else if (revealedCount > 8) document.getElementById('progressHint').textContent = '🔥 почти все!';
+  else if (revealedCount > 4) document.getElementById('progressHint').textContent = '💫 продолжай!';
+}
+
+// ========== Modal ==========
+function openModal(card, index) {
+  currentModalCardIndex = index;
+  const modal = document.getElementById('modal');
+  document.getElementById('modalEmoji').textContent = card.emoji;
+  const lbl = document.getElementById('modalLabel');
+  lbl.textContent = card.label;
+  lbl.style.color = card.type === 'compliment' ? 'var(--accent2)' : card.type === 'gift' ? 'var(--gold)' : 'var(--accent)';
+  document.getElementById('modalMsg').textContent = card.msg;
+
+  // Skip button
+  const skipBtn = document.getElementById('modalSkip');
+  if (card.isTask && !skipUsed && extraTasks.length > 0) {
+    skipBtn.classList.add('visible');
+    skipBtn.classList.remove('used');
+    skipBtn.textContent = '🔄 ' + DATA.ui.skipLabel;
+  } else if (card.isTask && skipUsed) {
+    skipBtn.classList.add('visible', 'used');
+    skipBtn.textContent = '🚫 ' + DATA.ui.skipUsedLabel;
+  } else {
+    skipBtn.classList.remove('visible');
+  }
+
+  modal.classList.add('active');
+}
+
+document.getElementById('modalClose').addEventListener('click', () => {
+  document.getElementById('modal').classList.remove('active');
+});
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('modal').classList.remove('active');
+});
+
+// ========== Skip logic ==========
+document.getElementById('modalSkip').addEventListener('click', () => {
+  if (skipUsed || extraTasks.length === 0) return;
+  skipUsed = true;
+  const newTask = extraTasks.pop();
+  const idx = currentModalCardIndex;
+  if (idx >= 0 && idx < allCards.length) {
+    allCards[idx].emoji = newTask.emoji;
+    allCards[idx].msg = newTask.text;
+    // Update card content in DOM
+    const wraps = grid.querySelectorAll('.card-wrap');
+    const wrap = wraps[idx];
+    if (wrap) {
+      wrap.querySelector('.emoji').textContent = newTask.emoji;
+      wrap.querySelector('.msg').textContent = newTask.text;
+    }
+    openModal(allCards[idx], idx);
+  }
+});
+
+// ========== Bonus ==========
+function showBonus() {
+  const section = document.getElementById('bonusSection');
+  section.classList.add('active');
+  setTimeout(() => {
+    section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const bonusWrap = document.getElementById('bonusCard');
+    const canvas = bonusWrap.querySelector('canvas');
+
+    bonusWrap.addEventListener('click', () => {
+      if (bonusWrap.classList.contains('revealed')) {
+        openModal({ emoji: '👑', type: 'gift', label: 'Секрет', msg: finalText }, -1);
+      }
+    });
+
+    setupScratch(canvas, () => {
+      bonusWrap.classList.add('revealed');
+      const rect = bonusWrap.getBoundingClientRect();
+      emitSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
+      setTimeout(() => emitSparkles(rect.left + rect.width*0.3, rect.top + rect.height*0.4), 200);
+      setTimeout(() => emitSparkles(rect.left + rect.width*0.7, rect.top + rect.height*0.6), 400);
+      setTimeout(() => openModal({ emoji: '👑', type: 'gift', label: 'Секрет', msg: finalText }, -1), 500);
+    }, true);
+  }, 300);
+}
+</script>
+</body>
+</html>

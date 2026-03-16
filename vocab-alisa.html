@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wortschatz · Алиса</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Libre+Franklin:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#1a1a2e;
+  --surface:#16213e;
+  --card:#0f3460;
+  --card2:#1a1a40;
+  --accent:#e94560;
+  --accent2:#ff6b6b;
+  --gold:#f0c040;
+  --green:#2ecc71;
+  --blue:#5dade2;
+  --text:#eef0f2;
+  --text2:#a8b2c1;
+  --text3:#6b7b8d;
+  --radius:14px;
+  --shadow:0 8px 32px rgba(0,0,0,.35);
+}
+
+html{font-size:16px}
+body{
+  min-height:100vh;
+  background:var(--bg);
+  font-family:'Libre Franklin',sans-serif;
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+/* subtle animated background */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 20% 50%,rgba(233,69,96,.06) 0%,transparent 60%),
+    radial-gradient(ellipse at 80% 20%,rgba(93,173,226,.06) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 90%,rgba(240,192,64,.04) 0%,transparent 50%);
+  pointer-events:none;z-index:0;
+}
+
+.app{
+  position:relative;z-index:1;
+  max-width:640px;
+  margin:0 auto;
+  padding:20px 16px 40px;
+}
+
+/* ---- HEADER ---- */
+header{
+  text-align:center;
+  margin-bottom:28px;
+  animation:fadeDown .6s ease;
+}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+
+header h1{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(26px,6vw,34px);
+  font-weight:400;
+  background:linear-gradient(135deg,var(--text),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  margin-bottom:4px;
+}
+header .sub{
+  font-size:13px;color:var(--text3);
+  letter-spacing:2px;text-transform:uppercase;
+}
+
+/* ---- LEITNER BOXES VISUALIZATION ---- */
+.leitner{
+  display:flex;gap:6px;
+  margin-bottom:24px;
+  animation:fadeDown .6s ease .1s both;
+}
+.leitner-box{
+  flex:1;
+  background:var(--surface);
+  border-radius:10px;
+  padding:10px 6px;
+  text-align:center;
+  border:2px solid transparent;
+  transition:all .3s ease;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+}
+.leitner-box::before{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:3px;
+  transition:background .3s;
+}
+.leitner-box[data-box="0"]::before{background:var(--accent)}
+.leitner-box[data-box="1"]::before{background:#e67e22}
+.leitner-box[data-box="2"]::before{background:var(--gold)}
+.leitner-box[data-box="3"]::before{background:var(--blue)}
+.leitner-box[data-box="4"]::before{background:var(--green)}
+.leitner-box.active{border-color:var(--accent);background:rgba(233,69,96,.1)}
+.leitner-box .box-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--text3);
+  margin-bottom:2px;
+}
+.leitner-box .box-count{
+  font-size:22px;font-weight:700;
+  color:var(--text);
+}
+.leitner-box .box-label{
+  font-size:9px;color:var(--text3);
+  letter-spacing:.5px;text-transform:uppercase;
+  margin-top:2px;
+}
+
+/* ---- MODE TABS ---- */
+.tabs{
+  display:flex;gap:4px;
+  background:var(--surface);
+  border-radius:12px;
+  padding:4px;
+  margin-bottom:20px;
+  animation:fadeDown .6s ease .15s both;
+}
+.tab{
+  flex:1;
+  padding:10px 8px;
+  border:none;
+  background:transparent;
+  color:var(--text3);
+  font-family:'Libre Franklin',sans-serif;
+  font-size:13px;font-weight:500;
+  border-radius:9px;
+  cursor:pointer;
+  transition:all .25s ease;
+}
+.tab:hover{color:var(--text)}
+.tab.active{
+  background:var(--card);
+  color:var(--text);
+  box-shadow:0 2px 10px rgba(0,0,0,.2);
+}
+
+/* ---- STATS BAR ---- */
+.stats{
+  display:flex;gap:12px;justify-content:center;
+  margin-bottom:20px;
+  animation:fadeDown .6s ease .2s both;
+}
+.stat{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--text2);
+}
+.stat .dot{
+  width:8px;height:8px;border-radius:50%;
+}
+.stat .dot.learned{background:var(--green)}
+.stat .dot.review{background:var(--gold)}
+.stat .dot.new{background:var(--accent)}
+
+/* ---- DIRECTION TOGGLE ---- */
+.dir-toggle{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-bottom:20px;
+  animation:fadeDown .6s ease .2s both;
+}
+.dir-btn{
+  padding:7px 14px;
+  border:1.5px solid var(--text3);
+  background:transparent;
+  color:var(--text2);
+  font-family:'Libre Franklin',sans-serif;
+  font-size:12px;font-weight:500;
+  border-radius:20px;
+  cursor:pointer;
+  transition:all .25s;
+}
+.dir-btn.active{
+  border-color:var(--accent);
+  color:var(--accent);
+  background:rgba(233,69,96,.1);
+}
+.dir-arrow{color:var(--text3);font-size:14px}
+
+/* ---- FLASHCARD ---- */
+.card-area{
+  perspective:1000px;
+  margin-bottom:20px;
+  min-height:220px;
+  animation:fadeDown .6s ease .25s both;
+}
+.flashcard{
+  width:100%;
+  min-height:220px;
+  position:relative;
+  cursor:pointer;
+  transform-style:preserve-3d;
+  transition:transform .55s cubic-bezier(.4,.0,.2,1);
+  -webkit-tap-highlight-color:transparent;
+}
+.flashcard.flipped{transform:rotateY(180deg)}
+
+.card-face{
+  position:absolute;inset:0;
+  backface-visibility:hidden;
+  border-radius:var(--radius);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:32px 28px;
+  text-align:center;
+}
+.card-front{
+  background:linear-gradient(145deg,var(--card),var(--card2));
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:var(--shadow);
+}
+.card-back{
+  background:linear-gradient(145deg,#1b2838,#0f3460);
+  border:1px solid rgba(93,173,226,.15);
+  box-shadow:var(--shadow),inset 0 0 40px rgba(93,173,226,.03);
+  transform:rotateY(180deg);
+}
+
+.card-lang{
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:12px;
+}
+.card-front .card-lang{color:var(--accent2)}
+.card-back .card-lang{color:var(--blue)}
+
+.card-word{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(22px,5.5vw,30px);
+  line-height:1.3;
+  color:var(--text);
+  margin-bottom:8px;
+}
+.card-hint{
+  font-size:12px;
+  color:var(--text3);
+  font-style:italic;
+}
+
+.card-number{
+  position:absolute;top:14px;right:18px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--text3);
+  opacity:.5;
+}
+
+.card-box-indicator{
+  position:absolute;top:14px;left:18px;
+  display:flex;gap:3px;
+}
+.card-box-indicator span{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text3);opacity:.3;
+}
+.card-box-indicator span.filled{opacity:1}
+.card-box-indicator span:nth-child(1).filled{background:var(--accent)}
+.card-box-indicator span:nth-child(2).filled{background:#e67e22}
+.card-box-indicator span:nth-child(3).filled{background:var(--gold)}
+.card-box-indicator span:nth-child(4).filled{background:var(--blue)}
+.card-box-indicator span:nth-child(5).filled{background:var(--green)}
+
+/* flip hint */
+.flip-hint{
+  text-align:center;
+  font-size:11px;color:var(--text3);
+  margin-top:-12px;margin-bottom:16px;
+  animation:pulse-hint 2.5s ease-in-out infinite;
+}
+@keyframes pulse-hint{0%,100%{opacity:.4}50%{opacity:.8}}
+
+/* ---- BUTTONS ---- */
+.actions{
+  display:flex;gap:10px;
+  animation:fadeDown .6s ease .3s both;
+}
+.act-btn{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-family:'Libre Franklin',sans-serif;
+  font-size:14px;font-weight:600;
+  cursor:pointer;
+  transition:all .25s ease;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.act-btn:active{transform:scale(.96)}
+
+.btn-wrong{
+  background:rgba(233,69,96,.15);
+  color:var(--accent);
+  border:1.5px solid rgba(233,69,96,.3);
+}
+.btn-wrong:hover{background:rgba(233,69,96,.25)}
+
+.btn-right{
+  background:rgba(46,204,113,.15);
+  color:var(--green);
+  border:1.5px solid rgba(46,204,113,.3);
+}
+.btn-right:hover{background:rgba(46,204,113,.25)}
+
+.btn-next{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;
+  border:none;
+}
+.btn-next:hover{filter:brightness(1.1)}
+
+/* ---- QUIZ MODE ---- */
+.quiz-area{display:none}
+
+.quiz-input-wrap{
+  position:relative;
+  margin-bottom:16px;
+}
+.quiz-input{
+  width:100%;
+  padding:16px 20px;
+  background:var(--surface);
+  border:2px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  color:var(--text);
+  font-family:'Libre Franklin',sans-serif;
+  font-size:16px;
+  outline:none;
+  transition:border-color .3s;
+}
+.quiz-input:focus{border-color:var(--accent)}
+.quiz-input::placeholder{color:var(--text3)}
+.quiz-input.correct{border-color:var(--green);background:rgba(46,204,113,.08)}
+.quiz-input.wrong{border-color:var(--accent);background:rgba(233,69,96,.08)}
+
+.quiz-feedback{
+  text-align:center;
+  min-height:24px;
+  margin-bottom:12px;
+  font-size:14px;
+  font-weight:500;
+}
+.quiz-feedback.correct-msg{color:var(--green)}
+.quiz-feedback.wrong-msg{color:var(--accent2)}
+
+.quiz-answer{
+  text-align:center;
+  font-family:'DM Serif Display',serif;
+  font-size:20px;
+  color:var(--blue);
+  margin-bottom:12px;
+  min-height:28px;
+}
+
+.check-btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-family:'Libre Franklin',sans-serif;
+  font-size:15px;font-weight:600;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;
+  transition:all .25s;
+}
+.check-btn:hover{filter:brightness(1.1)}
+.check-btn:active{transform:scale(.97)}
+
+/* ---- LIST MODE ---- */
+.list-area{display:none}
+
+.word-list{
+  display:flex;flex-direction:column;gap:8px;
+}
+.word-item{
+  display:flex;align-items:center;
+  background:var(--surface);
+  border-radius:12px;
+  padding:14px 18px;
+  border:1px solid rgba(255,255,255,.04);
+  transition:all .25s;
+  cursor:pointer;
+  animation:fadeDown .4s ease both;
+}
+.word-item:hover{
+  background:var(--card);
+  border-color:rgba(255,255,255,.08);
+  transform:translateX(4px);
+}
+.word-item .num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--text3);
+  min-width:28px;
+}
+.word-item .de{
+  flex:1;
+  font-weight:500;
+  font-size:15px;
+}
+.word-item .arrow-sep{
+  color:var(--text3);
+  margin:0 12px;
+  font-size:12px;
+}
+.word-item .bg{
+  flex:1;
+  font-size:14px;
+  color:var(--text2);
+  text-align:right;
+}
+.word-item .box-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  margin-left:12px;
+  flex-shrink:0;
+}
+
+/* ---- PROGRESS CELEBRATION ---- */
+.celebration{
+  display:none;
+  text-align:center;
+  padding:40px 20px;
+  animation:fadeDown .6s ease;
+}
+.celebration .emoji{font-size:52px;margin-bottom:16px}
+.celebration h2{
+  font-family:'DM Serif Display',serif;
+  font-size:26px;margin-bottom:8px;
+}
+.celebration p{color:var(--text2);font-size:14px;margin-bottom:24px}
+.celebration .restart-btn{
+  padding:14px 32px;
+  border:none;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;font-family:'Libre Franklin',sans-serif;
+  font-size:15px;font-weight:600;cursor:pointer;
+  transition:all .25s;
+}
+.celebration .restart-btn:hover{filter:brightness(1.1)}
+
+/* ---- PROGRESS BAR ---- */
+.progress-wrap{
+  margin-bottom:20px;
+  animation:fadeDown .6s ease .18s both;
+}
+.progress-bar{
+  width:100%;height:6px;
+  background:var(--surface);
+  border-radius:3px;
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--gold),var(--green));
+  border-radius:3px;
+  transition:width .5s cubic-bezier(.4,.0,.2,1);
+  width:0;
+}
+.progress-label{
+  display:flex;justify-content:space-between;
+  font-size:11px;color:var(--text3);
+  margin-top:6px;
+}
+
+/* ---- KEYBOARD HINT ---- */
+.key-hints{
+  display:flex;justify-content:center;gap:16px;
+  margin-top:20px;
+  font-size:11px;color:var(--text3);
+}
+.key-hints kbd{
+  display:inline-block;
+  padding:2px 8px;
+  background:var(--surface);
+  border-radius:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  border:1px solid rgba(255,255,255,.08);
+  margin-right:4px;
+}
+
+@media(max-width:480px){
+  .actions{flex-direction:column;gap:8px}
+  .word-item{padding:12px 14px}
+  .word-item .arrow-sep{margin:0 8px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <h1>Wortschatz für Alisa</h1>
+  <div class="sub">Wohnung · Жилище · 10 думи</div>
+</header>
+
+<!-- Leitner Boxes -->
+<div class="leitner" id="leitner">
+  <div class="leitner-box active" data-box="0" onclick="filterBox(0)">
+    <div class="box-num">1</div>
+    <div class="box-count" id="box0">10</div>
+    <div class="box-label">Нови</div>
+  </div>
+  <div class="leitner-box" data-box="1" onclick="filterBox(1)">
+    <div class="box-num">2</div>
+    <div class="box-count" id="box1">0</div>
+    <div class="box-label">Почти</div>
+  </div>
+  <div class="leitner-box" data-box="2" onclick="filterBox(2)">
+    <div class="box-num">3</div>
+    <div class="box-count" id="box2">0</div>
+    <div class="box-label">Добре</div>
+  </div>
+  <div class="leitner-box" data-box="3" onclick="filterBox(3)">
+    <div class="box-num">4</div>
+    <div class="box-count" id="box3">0</div>
+    <div class="box-label">Силно</div>
+  </div>
+  <div class="leitner-box" data-box="4" onclick="filterBox(4)">
+    <div class="box-num">5</div>
+    <div class="box-count" id="box4">0</div>
+    <div class="box-label">Научено</div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+  <div class="progress-label">
+    <span id="progText">0 от 10 научени</span>
+    <span id="progPct">0%</span>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" onclick="switchMode('cards')">🃏 Карти</button>
+  <button class="tab" onclick="switchMode('quiz')">✍️ Тест</button>
+  <button class="tab" onclick="switchMode('list')">📋 Списък</button>
+</div>
+
+<!-- Direction -->
+<div class="dir-toggle">
+  <button class="dir-btn active" id="dirDE" onclick="setDir('de')">DE 🇩🇪</button>
+  <span class="dir-arrow">→</span>
+  <button class="dir-btn" id="dirBG" onclick="setDir('bg')">BG 🇧🇬</button>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat"><span class="dot new"></span> <span id="sNew">10</span> нови</div>
+  <div class="stat"><span class="dot review"></span> <span id="sReview">0</span> повтаряне</div>
+  <div class="stat"><span class="dot learned"></span> <span id="sLearned">0</span> научени</div>
+</div>
+
+<!-- ======= CARD MODE ======= -->
+<div id="cardMode">
+  <div class="card-area">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="card-face card-front">
+        <div class="card-box-indicator" id="boxInd"></div>
+        <div class="card-number" id="cardNum"></div>
+        <div class="card-lang" id="frontLang">DEUTSCH</div>
+        <div class="card-word" id="frontWord"></div>
+        <div class="card-hint" id="frontHint">натисни за отговор</div>
+      </div>
+      <div class="card-face card-back">
+        <div class="card-lang" id="backLang">БЪЛГАРСКИ</div>
+        <div class="card-word" id="backWord"></div>
+        <div class="card-hint">знаеш ли?</div>
+      </div>
+    </div>
+  </div>
+  <div class="flip-hint" id="flipHint">👆 натисни картата</div>
+
+  <div class="actions" id="actions" style="display:none">
+    <button class="act-btn btn-wrong" onclick="answer(false)">✗ Не знам</button>
+    <button class="act-btn btn-right" onclick="answer(true)">✓ Знам!</button>
+  </div>
+</div>
+
+<!-- ======= QUIZ MODE ======= -->
+<div class="quiz-area" id="quizMode">
+  <div class="card-area">
+    <div style="background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:32px 28px;text-align:center;box-shadow:var(--shadow);min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div class="card-lang" id="quizLang">DEUTSCH</div>
+      <div class="card-word" id="quizWord"></div>
+      <div class="card-number" id="quizNum" style="position:static;margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="quiz-input-wrap">
+    <input type="text" class="quiz-input" id="quizInput" placeholder="Напиши превода..." autocomplete="off">
+  </div>
+  <div class="quiz-feedback" id="quizFeedback"></div>
+  <div class="quiz-answer" id="quizAnswer"></div>
+  <button class="check-btn" id="checkBtn" onclick="checkQuiz()">Провери</button>
+</div>
+
+<!-- ======= LIST MODE ======= -->
+<div class="list-area" id="listMode">
+  <div class="word-list" id="wordList"></div>
+</div>
+
+<!-- ======= CELEBRATION ======= -->
+<div class="celebration" id="celebration">
+  <div class="emoji">🎉🇩🇪🇧🇬</div>
+  <h2>Браво, Алиса!</h2>
+  <p>Всички 10 думи са научени! Система Лайтнер казва: повтори утре за дълготрайна памет.</p>
+  <button class="restart-btn" onclick="resetAll()">🔄 Започни отново</button>
+</div>
+
+<div class="key-hints" id="keyHints">
+  <span><kbd>Space</kbd> обърни</span>
+  <span><kbd>←</kbd> не знам</span>
+  <span><kbd>→</kbd> знам</span>
+</div>
+
+</div>
+
+<script>
+const WORDS = [
+  { de: "die Miete", bg: "Наем", hint: "месечна такса" },
+  { de: "die Nebenkosten", bg: "Допълнителни разходи", hint: "вода, ток, отопление" },
+  { de: "die Größe der Wohnung", bg: "Размер на жилището", hint: "квадратни метри" },
+  { de: "das ruhige Wohnviertel", bg: "Тих жилищен район", hint: "тихо място за живеене" },
+  { de: "die netten Nachbarn", bg: "Добри съседи", hint: "хората до теб" },
+  { de: "im oberen Stock", bg: "На горния етаж", hint: "нагоре по стълбите" },
+  { de: "die zentrale Lage", bg: "Централно местоположение", hint: "в центъра на града" },
+  { de: "eine helle Wohnung", bg: "Светъл апартамент", hint: "много слънце" },
+  { de: "das gemütliche Wohnzimmer", bg: "Уютна всекидневна", hint: "тук се отпускаш" },
+  { de: "die Terrasse auf dem Dach", bg: "Тераса на покрива", hint: "гледка отгоре" }
+];
+
+// Leitner state: box 0-4 for each word
+let boxes = WORDS.map(() => 0);
+let direction = 'de'; // 'de' = show DE ask BG, 'bg' = show BG ask DE
+let currentIdx = 0;
+let queue = [];
+let isFlipped = false;
+let currentMode = 'cards';
+let quizAnswered = false;
+
+function shuffleArray(a) {
+  const arr = [...a];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildQueue(filterBox = null) {
+  let indices;
+  if (filterBox !== null) {
+    indices = boxes.map((b, i) => b === filterBox ? i : -1).filter(i => i >= 0);
+  } else {
+    // prioritize lower boxes
+    indices = [];
+    for (let b = 0; b <= 4; b++) {
+      const inBox = boxes.map((bx, i) => bx === b ? i : -1).filter(i => i >= 0);
+      indices.push(...inBox);
+    }
+  }
+  queue = shuffleArray(indices.length ? indices : [...Array(10).keys()]);
+  currentIdx = 0;
+}
+
+function updateLeitnerUI() {
+  const counts = [0, 0, 0, 0, 0];
+  boxes.forEach(b => counts[b]++);
+  for (let i = 0; i < 5; i++) {
+    document.getElementById('box' + i).textContent = counts[i];
+  }
+  const learned = counts[4];
+  const review = counts[1] + counts[2] + counts[3];
+  const newW = counts[0];
+  document.getElementById('sNew').textContent = newW;
+  document.getElementById('sReview').textContent = review;
+  document.getElementById('sLearned').textContent = learned;
+
+  const pct = Math.round((learned / 10) * 100);
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progText').textContent = learned + ' от 10 научени';
+  document.getElementById('progPct').textContent = pct + '%';
+
+  if (learned === 10 && currentMode === 'cards') {
+    showCelebration();
+  }
+}
+
+function showCelebration() {
+  document.getElementById('cardMode').style.display = 'none';
+  document.getElementById('celebration').style.display = 'block';
+  document.getElementById('actions').style.display = 'none';
+  document.getElementById('flipHint').style.display = 'none';
+  document.getElementById('keyHints').style.display = 'none';
+}
+
+function getQuestion(idx) {
+  return direction === 'de' ? WORDS[idx].de : WORDS[idx].bg;
+}
+function getAnswer(idx) {
+  return direction === 'de' ? WORDS[idx].bg : WORDS[idx].de;
+}
+
+function showCard() {
+  if (queue.length === 0) buildQueue();
+  if (currentIdx >= queue.length) {
+    buildQueue();
+    currentIdx = 0;
+  }
+  const idx = queue[currentIdx];
+  const w = WORDS[idx];
+
+  document.getElementById('frontLang').textContent = direction === 'de' ? 'DEUTSCH 🇩🇪' : 'БЪЛГАРСКИ 🇧🇬';
+  document.getElementById('backLang').textContent = direction === 'de' ? 'БЪЛГАРСКИ 🇧🇬' : 'DEUTSCH 🇩🇪';
+  document.getElementById('frontWord').textContent = getQuestion(idx);
+  document.getElementById('backWord').textContent = getAnswer(idx);
+  document.getElementById('frontHint').textContent = w.hint;
+  document.getElementById('cardNum').textContent = (currentIdx + 1) + ' / ' + queue.length;
+
+  // box indicator
+  const indEl = document.getElementById('boxInd');
+  indEl.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const s = document.createElement('span');
+    if (i <= boxes[idx]) s.classList.add('filled');
+    indEl.appendChild(s);
+  }
+
+  // reset flip
+  isFlipped = false;
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('actions').style.display = 'none';
+  document.getElementById('flipHint').style.display = 'block';
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('flashcard').classList.toggle('flipped', isFlipped);
+  if (isFlipped) {
+    document.getElementById('actions').style.display = 'flex';
+    document.getElementById('flipHint').style.display = 'none';
+  }
+}
+
+function answer(correct) {
+  const idx = queue[currentIdx];
+  if (correct) {
+    boxes[idx] = Math.min(boxes[idx] + 1, 4);
+  } else {
+    boxes[idx] = Math.max(boxes[idx] - 1, 0);
+  }
+  updateLeitnerUI();
+  currentIdx++;
+  if (currentIdx >= queue.length) {
+    buildQueue();
+  }
+  showCard();
+}
+
+function setDir(d) {
+  direction = d;
+  document.getElementById('dirDE').classList.toggle('active', d === 'de');
+  document.getElementById('dirBG').classList.toggle('active', d === 'bg');
+  if (currentMode === 'cards') showCard();
+  else if (currentMode === 'quiz') showQuiz();
+  else if (currentMode === 'list') showList();
+}
+
+function filterBox(b) {
+  document.querySelectorAll('.leitner-box').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.leitner-box[data-box="${b}"]`).classList.add('active');
+  buildQueue(b);
+  if (currentMode === 'cards') showCard();
+  else if (currentMode === 'quiz') showQuiz();
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['cards', 'quiz', 'list'][i] === mode);
+  });
+  document.getElementById('cardMode').style.display = mode === 'cards' ? 'block' : 'none';
+  document.getElementById('quizMode').style.display = mode === 'quiz' ? 'block' : 'none';
+  document.getElementById('listMode').style.display = mode === 'list' ? 'block' : 'none';
+  document.getElementById('celebration').style.display = 'none';
+  document.getElementById('keyHints').style.display = mode === 'cards' ? 'flex' : 'none';
+
+  if (mode === 'cards') showCard();
+  else if (mode === 'quiz') showQuiz();
+  else if (mode === 'list') showList();
+}
+
+// ---- QUIZ ----
+function showQuiz() {
+  if (queue.length === 0) buildQueue();
+  if (currentIdx >= queue.length) { buildQueue(); currentIdx = 0; }
+  const idx = queue[currentIdx];
+  document.getElementById('quizLang').textContent = direction === 'de' ? 'DEUTSCH 🇩🇪' : 'БЪЛГАРСКИ 🇧🇬';
+  document.getElementById('quizWord').textContent = getQuestion(idx);
+  document.getElementById('quizNum').textContent = (currentIdx + 1) + ' / ' + queue.length;
+  document.getElementById('quizInput').value = '';
+  document.getElementById('quizInput').className = 'quiz-input';
+  document.getElementById('quizFeedback').textContent = '';
+  document.getElementById('quizFeedback').className = 'quiz-feedback';
+  document.getElementById('quizAnswer').textContent = '';
+  document.getElementById('checkBtn').textContent = 'Провери';
+  quizAnswered = false;
+  document.getElementById('quizInput').focus();
+}
+
+function normalize(s) {
+  return s.toLowerCase().trim()
+    .replace(/ü/g, 'ue').replace(/ö/g, 'oe').replace(/ä/g, 'ae').replace(/ß/g, 'ss')
+    .replace(/[^a-zа-яёъ0-9\s]/g, '').replace(/\s+/g, ' ');
+}
+
+function checkQuiz() {
+  if (quizAnswered) {
+    currentIdx++;
+    showQuiz();
+    return;
+  }
+  const idx = queue[currentIdx];
+  const userAns = document.getElementById('quizInput').value;
+  const correct = getAnswer(idx);
+  const isCorrect = normalize(userAns) === normalize(correct) ||
+    normalize(userAns).includes(normalize(correct)) ||
+    normalize(correct).includes(normalize(userAns));
+
+  const inp = document.getElementById('quizInput');
+  const fb = document.getElementById('quizFeedback');
+
+  if (isCorrect && userAns.trim().length > 0) {
+    inp.classList.add('correct');
+    fb.textContent = '✓ Правилно!';
+    fb.className = 'quiz-feedback correct-msg';
+    boxes[idx] = Math.min(boxes[idx] + 1, 4);
+  } else {
+    inp.classList.add('wrong');
+    fb.textContent = '✗ Опитай пак!';
+    fb.className = 'quiz-feedback wrong-msg';
+    document.getElementById('quizAnswer').textContent = correct;
+    boxes[idx] = Math.max(boxes[idx] - 1, 0);
+  }
+  updateLeitnerUI();
+  quizAnswered = true;
+  document.getElementById('checkBtn').textContent = 'Следваща →';
+}
+
+// ---- LIST ----
+function showList() {
+  const el = document.getElementById('wordList');
+  const boxColors = ['var(--accent)', '#e67e22', 'var(--gold)', 'var(--blue)', 'var(--green)'];
+  el.innerHTML = WORDS.map((w, i) => `
+    <div class="word-item" style="animation-delay:${i * .05}s" onclick="this.classList.toggle('expanded')">
+      <span class="num">${String(i + 1).padStart(2, '0')}</span>
+      <span class="de">${w.de}</span>
+      <span class="arrow-sep">↔</span>
+      <span class="bg">${w.bg}</span>
+      <span class="box-dot" style="background:${boxColors[boxes[i]]}"></span>
+    </div>
+  `).join('');
+}
+
+function resetAll() {
+  boxes = WORDS.map(() => 0);
+  updateLeitnerUI();
+  buildQueue();
+  document.getElementById('celebration').style.display = 'none';
+  switchMode('cards');
+}
+
+// ---- KEYBOARD ----
+document.addEventListener('keydown', e => {
+  if (currentMode === 'cards') {
+    if (e.code === 'Space') { e.preventDefault(); flipCard(); }
+    if (e.code === 'ArrowRight' && isFlipped) answer(true);
+    if (e.code === 'ArrowLeft' && isFlipped) answer(false);
+  }
+  if (currentMode === 'quiz' && e.code === 'Enter') {
+    e.preventDefault();
+    checkQuiz();
+  }
+});
+
+// ---- INIT ----
+buildQueue();
+showCard();
+updateLeitnerUI();
+</script>
+</body>
+</html>
